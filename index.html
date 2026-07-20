@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <!-- ════════════════════════════════════════════════════════
+       Painel de Alunos · UNICEPLAC — 2026/1
+       Adaptação do painel Codevasf/gov.br para a identidade
+       visual UNICEPLAC (Manual da Marca:
+       https://www.uniceplac.edu.br/manual-da-marca/)
+  ════════════════════════════════════════════════════════ -->
+  <title>Painel de Alunos 2026/1 · UNICEPLAC</title>
+  <meta name="description" content="Painel interativo do corpo discente UNICEPLAC 2026/1: estatísticas descritivas por curso, perfil demográfico, situação acadêmica e origem geográfica dos alunos.">
+  <meta name="keywords" content="uniceplac, painel de alunos, estatísticas descritivas, dashboard acadêmico, centro universitário">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="author" content="UNICEPLAC — Centro Universitário do Planalto Central Apparecido dos Santos">
+  <meta name="theme-color" content="#02744F">
+  <!-- Favicon: símbolo da marca (flor de seis pétalas) em SVG inline -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-52 -52 104 104'%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23F07F3D'/%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23F07F3D' transform='rotate(60)'/%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23A6D3C1' transform='rotate(120)'/%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23A6D3C1' transform='rotate(180)'/%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23A6D3C1' transform='rotate(240)'/%3E%3Cpath d='M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z' fill='%23F07F3D' transform='rotate(300)'/%3E%3C/svg%3E">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Painel de Alunos 2026/1 · UNICEPLAC">
+  <meta property="og:description" content="Estatísticas descritivas do corpo discente por curso: idade média, perfil demográfico, situação acadêmica e origem geográfica.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Tipografia: a marca usa FF Meta Bold (fonte licenciada). Substituição
+       aberta pela Fira Sans — família do mesmo desenhista, Erik Spiekermann —
+       com Fira Mono para valores numéricos e tabelas. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Fira+Mono:wght@400;500;700&display=swap">
+  <!-- Ícones Font Awesome (mesma biblioteca do painel de origem) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Folha de estilos compilada de scss/style.scss -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Símbolo da marca reutilizável: flor de seis pétalas (redesenho aproximado
+     do símbolo oficial; as três pétalas superiores em laranja e as três
+     inferiores em verde-claro, conforme o Manual da Marca). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="un-petals">
+      <path id="un-petal" d="M0,-48 C14,-38 25,-25 19,-9 C14,-2 6,0 0,0 C-6,0 -14,-2 -19,-9 C-25,-25 -14,-38 0,-48 Z"/>
+    </g>
+    <symbol id="un-flower" viewBox="-52 -52 104 104">
+      <use href="#un-petal" fill="#F07F3D"/>
+      <use href="#un-petal" fill="#F07F3D" transform="rotate(60)"/>
+      <use href="#un-petal" fill="#A6D3C1" transform="rotate(120)"/>
+      <use href="#un-petal" fill="#A6D3C1" transform="rotate(180)"/>
+      <use href="#un-petal" fill="#A6D3C1" transform="rotate(240)"/>
+      <use href="#un-petal" fill="#F07F3D" transform="rotate(300)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<nav class="skiplink-wrap" aria-label="Acesso rápido">
+  <a class="skiplink" href="#main">Ir para o conteúdo</a>
+  <a class="skiplink" href="#sec-estatisticas">Ir para as estatísticas descritivas</a>
+</nav>
+
+<div class="brand-strip" aria-hidden="true"></div>
+
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <img class="logo" src="assets/logo-horizontal.png" alt="UNICEPLAC — Centro Universitário">
+    <div class="topbar-title">
+      <strong>Painel de Alunos</strong>
+      <span>Corpo discente · Semestre 2026/1</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn ghost" type="button" id="btnRecarregar" title="Recarregar a planilha de dados">
+        <i class="fas fa-rotate" aria-hidden="true"></i> Atualizar dados
+      </button>
+      <button class="btn orange" type="button" onclick="window.print()" title="Imprimir ou salvar em PDF">
+        <i class="fas fa-print" aria-hidden="true"></i> Imprimir
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="section-nav" aria-label="Seções do painel">
+  <ul>
+    <li><a href="#sec-visao" class="active"><i class="fas fa-chart-pie" aria-hidden="true"></i> Visão geral</a></li>
+    <li><a href="#sec-perfil"><i class="fas fa-users" aria-hidden="true"></i> Perfil dos alunos</a></li>
+    <li><a href="#sec-estatisticas"><i class="fas fa-calculator" aria-hidden="true"></i> Estatísticas descritivas</a></li>
+    <li><a href="#sec-alunos"><i class="fas fa-table-list" aria-hidden="true"></i> Lista de alunos</a></li>
+  </ul>
+</nav>
+
+<main id="main" role="main">
+
+  <!-- ── HERO ─────────────────────────────────────────────────── -->
+  <section class="hero" id="sec-visao" aria-labelledby="heroTitle">
+    <svg class="hero-flower" aria-hidden="true"><use href="#un-flower"/></svg>
+    <div>
+      <h1 id="heroTitle">Corpo discente <em>2026/1</em> em números</h1>
+      <p class="hero-desc">
+        Panorama interativo dos alunos do UNICEPLAC: distribuição por curso,
+        estatísticas descritivas de idade, situação acadêmica, perfil
+        demográfico e origem geográfica. Os dados são lidos diretamente da
+        planilha <strong>dados_alunos_2026_1.xlsx</strong> publicada junto com esta página.
+      </p>
+      <div class="hero-stats" id="heroStats" aria-live="polite">
+        <div><b id="hsAlunos">—</b><span>alunos registrados</span></div>
+        <div><b id="hsCursos">—</b><span>cursos de graduação</span></div>
+        <div><b id="hsIdade">—</b><span>idade média geral</span></div>
+        <div><b id="hsMunicipios">—</b><span>municípios de origem</span></div>
+      </div>
+    </div>
+    <div class="hero-badge">
+      <strong><i class="fas fa-seedling" aria-hidden="true"></i>Base de dados</strong>
+      <span id="heroFonte">Secretaria acadêmica · registro de matrículas do semestre 2026/1. Atualizado em <b id="heroData">—</b>.</span>
+    </div>
+  </section>
+
+  <!-- ── FILTROS ──────────────────────────────────────────────── -->
+  <section class="filters" aria-label="Filtros do painel">
+    <div>
+      <label for="fCurso">Curso</label>
+      <select id="fCurso"><option value="">Todos os cursos</option></select>
+    </div>
+    <div>
+      <label for="fSituacao">Situação acadêmica</label>
+      <select id="fSituacao"><option value="">Todas</option></select>
+    </div>
+    <div>
+      <label for="fSexo">Sexo</label>
+      <select id="fSexo"><option value="">Todos</option></select>
+    </div>
+    <div>
+      <label for="fUF">UF de residência</label>
+      <select id="fUF"><option value="">Todas</option></select>
+    </div>
+    <div class="filters-actions">
+      <button class="btn ghost" type="button" id="btnLimpar">
+        <i class="fas fa-filter-circle-xmark" aria-hidden="true"></i> Limpar
+      </button>
+    </div>
+    <div class="filter-count" aria-live="polite">
+      Exibindo <b id="fcAtual">0</b> de <b id="fcTotal">0</b> registros de alunos.
+    </div>
+  </section>
+
+  <!-- ── KPIs ─────────────────────────────────────────────────── -->
+  <div class="kpi-grid" id="kpiGrid" aria-label="Indicadores-chave">
+    <div class="kpi-c" style="--kc:var(--un-green)">
+      <div class="kpi-icon"><i class="fas fa-user-graduate" aria-hidden="true"></i></div>
+      <div><div class="kpi-lbl">Total de alunos</div><div class="kpi-val" id="kpiTotal">0</div><div class="kpi-sub">no filtro atual</div></div>
+    </div>
+    <div class="kpi-c" style="--kc:var(--un-orange)">
+      <div class="kpi-icon"><i class="fas fa-book-open-reader" aria-hidden="true"></i></div>
+      <div><div class="kpi-lbl">Cursando</div><div class="kpi-val" id="kpiCursando">0</div><div class="kpi-sub" id="kpiCursandoPct">—</div></div>
+    </div>
+    <div class="kpi-c" style="--kc:var(--un-purple)">
+      <div class="kpi-icon"><i class="fas fa-cake-candles" aria-hidden="true"></i></div>
+      <div><div class="kpi-lbl">Idade média</div><div class="kpi-val" id="kpiIdade">—</div><div class="kpi-sub" id="kpiIdadeMed">mediana: —</div></div>
+    </div>
+    <div class="kpi-c" style="--kc:var(--un-green-dark)">
+      <div class="kpi-icon"><i class="fas fa-venus" aria-hidden="true"></i></div>
+      <div><div class="kpi-lbl">Sexo feminino</div><div class="kpi-val" id="kpiFem">—</div><div class="kpi-sub" id="kpiFemN">—</div></div>
+    </div>
+    <div class="kpi-c" style="--kc:var(--un-orange-dark)">
+      <div class="kpi-icon"><i class="fas fa-map-location-dot" aria-hidden="true"></i></div>
+      <div><div class="kpi-lbl">Residentes no DF</div><div class="kpi-val" id="kpiDF">—</div><div class="kpi-sub" id="kpiDFN">—</div></div>
+    </div>
+  </div>
+
+  <!-- ── VISÃO GERAL: cursos ──────────────────────────────────── -->
+  <h2 class="section-title" id="sec-cursos">
+    <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
+    Alunos e idade por curso
+  </h2>
+
+  <div class="grid-2">
+    <div class="un-card">
+      <div class="card-hd">
+        <h3 class="card-title">Alunos por curso</h3>
+        <div class="card-sub">Quantidade de registros no filtro atual, em ordem decrescente</div>
+      </div>
+      <div class="card-bd"><div class="ch h560"><canvas id="cAlunosCurso"></canvas></div></div>
+    </div>
+    <div class="un-card">
+      <div class="card-hd">
+        <h3 class="card-title">Idade média por curso</h3>
+        <div class="card-sub">Média de idade dos alunos de cada curso · passe o cursor para ver mediana, desvio-padrão e amplitude</div>
+      </div>
+      <div class="card-bd">
+        <div class="ch h560"><canvas id="cIdadeCurso"></canvas></div>
+        <div class="legend-note"><i class="fas fa-circle-info" aria-hidden="true"></i>A linha tracejada laranja marca a idade média geral do filtro atual.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PERFIL ───────────────────────────────────────────────── -->
+  <h2 class="section-title" id="sec-perfil">
+    <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
+    Perfil dos alunos
+  </h2>
+
+  <div class="grid-3">
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">Faixa etária</h3><div class="card-sub">Distribuição de idades no filtro atual</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cFaixa"></canvas></div></div>
+    </div>
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">Sexo</h3><div class="card-sub">Composição do corpo discente</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cSexo"></canvas></div></div>
+    </div>
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">Situação acadêmica</h3><div class="card-sub">Área polar — inspirada nos exemplos amCharts</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cSituacao"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="grid-3 mt">
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">Estado civil</h3><div class="card-sub">Conforme registro de matrícula</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cEstadoCivil"></canvas></div></div>
+    </div>
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">UF de residência</h3><div class="card-sub">Distrito Federal, Goiás e demais estados</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cUF"></canvas></div></div>
+    </div>
+    <div class="un-card">
+      <div class="card-hd"><h3 class="card-title">Principais municípios</h3><div class="card-sub">Dez cidades com mais alunos</div></div>
+      <div class="card-bd"><div class="ch h260"><canvas id="cCidades"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Radar: perfil do curso × média institucional -->
+  <div class="un-card">
+    <div class="card-hd">
+      <h3 class="card-title">Radar do curso <small style="font-weight:400;color:var(--muted)">· comparação com a média institucional</small></h3>
+      <div class="card-tools">
+        <label class="sr-only" for="radarCurso" style="position:absolute;left:-9999px">Curso para o radar</label>
+        <select class="mini-select" id="radarCurso"></select>
+      </div>
+      <div class="card-sub">
+        Gráfico de radar — formato explorado nos exemplos amCharts — com cinco eixos normalizados de 0 a 100.
+        O polígono laranja é o curso selecionado; o verde, a média de todos os cursos do filtro atual.
+        Passe o cursor sobre os vértices para ver os valores reais.
+      </div>
+    </div>
+    <div class="card-bd"><div class="ch h420"><canvas id="cRadar"></canvas></div></div>
+  </div>
+
+  <!-- Heatmap curso × situação -->
+  <div class="un-card">
+    <div class="card-hd">
+      <h3 class="card-title">Curso × situação acadêmica</h3>
+      <div class="card-sub">Quantidade de alunos por combinação — a intensidade do verde acompanha o percentual dentro de cada curso</div>
+    </div>
+    <div class="card-bd heatmap-wrap" id="heatmapWrap"></div>
+  </div>
+
+  <!-- ── ESTATÍSTICAS DESCRITIVAS ─────────────────────────────── -->
+  <h2 class="section-title" id="sec-estatisticas">
+    <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
+    Estatísticas descritivas de idade por curso
+    <small>clique nos títulos das colunas para ordenar</small>
+  </h2>
+
+  <div class="un-card" style="margin-top:0">
+    <div class="card-hd">
+      <h3 class="card-title">Resumo estatístico</h3>
+      <div class="card-tools">
+        <button class="btn ghost" type="button" id="btnCSV"><i class="fas fa-file-csv" aria-hidden="true"></i> Exportar CSV</button>
+      </div>
+      <div class="card-sub">
+        N = alunos com data de nascimento válida · DP = desvio-padrão · Q1/Q3 = quartis ·
+        Idades calculadas em anos completos na data de referência do painel.
+      </div>
+    </div>
+    <div class="card-bd table-wrap">
+      <table class="data" id="tblStats" aria-label="Estatísticas descritivas de idade por curso">
+        <thead><tr id="tblStatsHead"></tr></thead>
+        <tbody id="tblStatsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── LISTA DE ALUNOS ──────────────────────────────────────── -->
+  <h2 class="section-title" id="sec-alunos">
+    <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
+    Lista de alunos
+  </h2>
+
+  <div class="un-card" style="margin-top:0">
+    <div class="card-hd">
+      <h3 class="card-title">Registros individuais</h3>
+      <div class="card-sub">A lista respeita os filtros do topo do painel · registros de transferência sem nome/RA aparecem como “—”</div>
+    </div>
+    <div class="card-bd">
+      <div class="table-toolbar">
+        <input type="search" id="buscaAluno" placeholder="Buscar por nome, RA, cidade ou bairro…" aria-label="Buscar aluno">
+        <span class="rows-count"><b id="alunosCount">0</b> aluno(s) encontrados</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="tblAlunos" aria-label="Lista de alunos">
+          <thead>
+            <tr>
+              <th class="no-sort">RA</th><th class="no-sort">Nome</th><th class="no-sort">Curso</th>
+              <th class="no-sort">Idade</th><th class="no-sort">Sexo</th><th class="no-sort">Situação</th>
+              <th class="no-sort">Cidade / UF</th>
+            </tr>
+          </thead>
+          <tbody id="tblAlunosBody"></tbody>
+        </table>
+      </div>
+      <nav class="pagination" id="alunosPag" aria-label="Paginação da lista de alunos"></nav>
+    </div>
+  </div>
+
+  <!-- ── ERRO DE CARREGAMENTO ─────────────────────────────────── -->
+  <section class="error-panel" id="errorPanel" role="alert">
+    <h2><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Não foi possível carregar a planilha</h2>
+    <p>
+      O painel lê o arquivo <code>dados_alunos_2026_1.xlsx</code> por <code>fetch()</code>, o que exige um
+      servidor HTTP — abrir o <code>index.html</code> com clique duplo (protocolo <code>file://</code>) bloqueia a leitura.
+    </p>
+    <p>
+      Para testar localmente, execute na pasta do projeto: <code>python -m http.server 8080</code>
+      e acesse <code>http://localhost:8080</code>. No GitHub Pages funciona automaticamente,
+      desde que a planilha esteja na mesma pasta do <code>index.html</code>.
+    </p>
+    <p style="margin-bottom:0">Detalhe técnico: <code id="errorDetail">—</code></p>
+  </section>
+
+</main>
+
+<!-- ── RODAPÉ ─────────────────────────────────────────────────── -->
+<footer class="un-footer" role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <svg aria-hidden="true"><use href="#un-flower"/></svg>
+      <div>
+        <strong>UNICEPLAC</strong>
+        <span>Centro Universitário</span>
+      </div>
+    </div>
+    <div class="footer-meta">
+      Painel do corpo discente · semestre 2026/1.<br>
+      Identidade visual conforme o <a href="https://www.uniceplac.edu.br/manual-da-marca/" target="_blank" rel="noopener">Manual da Marca UNICEPLAC</a>.
+      Construído com <a href="https://www.chartjs.org/" target="_blank" rel="noopener">Chart.js</a> e
+      <a href="https://sheetjs.com/" target="_blank" rel="noopener">SheetJS</a>; layout adaptado do padrão de painéis gov.br.
+    </div>
+    <div class="footer-note">
+      Dados de caráter <b>interno</b>.<br>
+      Uso restrito à gestão acadêmica.
+    </div>
+  </div>
+  <div class="footer-bar">© <span id="anoAtual"></span> UNICEPLAC — Centro Universitário do Planalto Central Apparecido dos Santos · Gama, DF</div>
+</footer>
+
+<!-- ── CARREGAMENTO ───────────────────────────────────────────── -->
+<div class="loader-overlay" id="loader">
+  <div class="loader-box">
+    <svg class="loader-flower" aria-hidden="true"><use href="#un-flower"/></svg>
+    Lendo a planilha de alunos…
+  </div>
+</div>
+
+<!-- Bibliotecas (mesmas versões/CDNs do painel de origem + SheetJS) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
