@@ -18,7 +18,7 @@
 'use strict';
 
 /* ── Configuração ─────────────────────────────────────────────────── */
-const ARQUIVO_DADOS = 'dados_alunos_2026_1.xlsx';
+const ARQUIVO_DADOS = 'dados.xlsx';
 const DATA_REFERENCIA = new Date(); // data-base do cálculo de idade
 
 const FAIXAS = [
@@ -187,7 +187,10 @@ const estado = {
   porPagina: 12,
   ordem: { col: 'media', dir: 'desc' },
   radarCurso: '',
-  charts: {}
+  charts: {},
+  mapa: null,
+  mapaCamada: null,
+  mapaBounds: null
 };
 
 const filtrados = () => estado.todos.filter(r =>
@@ -261,6 +264,295 @@ const pluginLinhaMedia = {
     ctx.restore();
   }
 };
+
+
+/* ── Geolocalização: bairros do DF e municípios ───────────────────── */
+/* Coordenadas aproximadas (centro do bairro/RA ou do município), suficientes
+   para a visualização espacial. Posições marcadas como "aprox" usam a capital
+   da UF quando o município não está no dicionário. */
+const normGeo = s => semAcento(s).replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+const GEO_PONTOS = {
+  'Gama': [-16.0205, -48.0646],
+  'Setor Central (Gama)': [-16.0170, -48.0615],
+  'Setor Leste (Gama)': [-16.0125, -48.0500],
+  'Setor Sul (Gama)': [-16.0295, -48.0570],
+  'Setor Oeste (Gama)': [-16.0230, -48.0768],
+  'Setor Norte (Gama)': [-16.0062, -48.0610],
+  'Setor de Indústria (Gama)': [-16.0030, -48.0478],
+  'Ponte Alta Norte (Gama)': [-15.9830, -48.1240],
+  'Ponte Alta (Gama)': [-16.0420, -48.1330],
+  'Santa Maria': [-16.0125, -47.9880],
+  'Santa Maria Norte': [-16.0005, -47.9845],
+  'Santa Maria Sul': [-16.0265, -47.9910],
+  'Setor Meireles (Santa Maria)': [-16.0330, -47.9745],
+  'Plano Piloto': [-15.7942, -47.8825],
+  'Asa Sul': [-15.8330, -47.9135],
+  'Asa Norte': [-15.7630, -47.8770],
+  'Sudoeste/Octogonal': [-15.7950, -47.9260],
+  'Noroeste': [-15.7400, -47.9100],
+  'Vila Planalto': [-15.7880, -47.8560],
+  'Granja do Torto': [-15.7100, -47.9300],
+  'Cruzeiro': [-15.7905, -47.9370],
+  'Lago Sul': [-15.8480, -47.8740],
+  'Lago Norte': [-15.7380, -47.8600],
+  'Varjão': [-15.7100, -47.8770],
+  'Taguatinga': [-15.8386, -48.0553],
+  'Taguatinga Norte': [-15.8160, -48.0570],
+  'Taguatinga Sul': [-15.8520, -48.0580],
+  'Ceilândia': [-15.8195, -48.1073],
+  'Ceilândia Norte': [-15.8030, -48.1080],
+  'Ceilândia Sul': [-15.8330, -48.1000],
+  'Sol Nascente/Pôr do Sol': [-15.8150, -48.1350],
+  'Samambaia': [-15.8763, -48.0847],
+  'Samambaia Norte': [-15.8680, -48.0820],
+  'Samambaia Sul': [-15.8850, -48.0880],
+  'Águas Claras': [-15.8340, -48.0260],
+  'Arniqueira': [-15.8560, -48.0080],
+  'Vicente Pires': [-15.8060, -48.0200],
+  'Guará': [-15.8266, -47.9770],
+  'Guará I': [-15.8180, -47.9700],
+  'Guará II': [-15.8355, -47.9787],
+  'SIA': [-15.8020, -47.9540],
+  'SCIA/Estrutural': [-15.7840, -48.0000],
+  'Núcleo Bandeirante': [-15.8697, -47.9668],
+  'Candangolândia': [-15.8547, -47.9530],
+  'Park Way': [-15.9006, -47.9631],
+  'Riacho Fundo': [-15.8820, -48.0170],
+  'Riacho Fundo II': [-15.8990, -48.0435],
+  'Recanto das Emas': [-15.9057, -48.0625],
+  'Jardim Botânico': [-15.8730, -47.8100],
+  'São Sebastião': [-15.9020, -47.7800],
+  'Paranoá': [-15.7754, -47.7776],
+  'Itapoã': [-15.7550, -47.7680],
+  'Sobradinho': [-15.6520, -47.7900],
+  'Sobradinho II': [-15.6525, -47.8250],
+  'Fercal': [-15.5900, -47.8700],
+  'Planaltina': [-15.6200, -47.6550],
+  'Brazlândia': [-15.6770, -48.2030],
+  'Novo Gama (GO)': [-16.0580, -48.0380],
+  'Valparaíso de Goiás (GO)': [-16.0651, -47.9757],
+  'Cidade Ocidental (GO)': [-16.1064, -47.9264],
+  'Luziânia (GO)': [-16.2525, -47.9502],
+  'Águas Lindas de Goiás (GO)': [-15.7617, -48.2816],
+  'Santo Antônio do Descoberto (GO)': [-15.9339, -48.2582]
+};
+
+const GEO_CIDADES = {
+  'VALPARAISO DE GOIAS': ['Valparaíso de Goiás (GO)', -16.0651, -47.9757],
+  'NOVO GAMA': ['Novo Gama (GO)', -16.0580, -48.0380],
+  'LUZIANIA': ['Luziânia (GO)', -16.2525, -47.9502],
+  'CIDADE OCIDENTAL': ['Cidade Ocidental (GO)', -16.1064, -47.9264],
+  'AGUAS LINDAS DE GOIAS': ['Águas Lindas de Goiás (GO)', -15.7617, -48.2816],
+  'SANTO ANTONIO DO DESCOBERTO': ['Santo Antônio do Descoberto (GO)', -15.9339, -48.2582],
+  'GOIANIA': ['Goiânia (GO)', -16.6864, -49.2643],
+  'ANAPOLIS': ['Anápolis (GO)', -16.3281, -48.9530],
+  'APARECIDA DE GOIANIA': ['Aparecida de Goiânia (GO)', -16.8220, -49.2470],
+  'GOIAS': ['Cidade de Goiás (GO)', -15.9337, -50.1400],
+  'CRISTALINA': ['Cristalina (GO)', -16.7688, -47.6132],
+  'FORMOSA': ['Formosa (GO)', -15.5372, -47.3340],
+  'PLANALTINA': ['Planaltina (GO)', -15.4529, -47.6142],
+  'ALEXANIA': ['Alexânia (GO)', -16.0837, -48.5076],
+  'POSSE': ['Posse (GO)', -14.0930, -46.3690],
+  'CALDAS NOVAS': ['Caldas Novas (GO)', -17.7440, -48.6250],
+  'CAMPO LIMPO DE GOIAS': ['Campo Limpo de Goiás (GO)', -16.2960, -49.0920],
+  'GOIANESIA': ['Goianésia (GO)', -15.3170, -49.1170],
+  'CERES': ['Ceres (GO)', -15.3080, -49.6010],
+  'COCALZINHO DE GOIAS': ['Cocalzinho de Goiás (GO)', -15.7940, -48.7770],
+  'PADRE BERNARDO': ['Padre Bernardo (GO)', -15.1600, -48.2830],
+  'LUIS EDUARDO MAGALHAES': ['Luís Eduardo Magalhães (BA)', -12.0920, -45.8000],
+  'BARREIRAS': ['Barreiras (BA)', -12.1530, -44.9900],
+  'CORRENTINA': ['Correntina (BA)', -13.3430, -44.6370],
+  'COCOS': ['Cocos (BA)', -14.1800, -44.5330],
+  'UNAI': ['Unaí (MG)', -16.3570, -46.9060],
+  'BURITIS': ['Buritis (MG)', -15.6180, -46.4230],
+  'ARINOS': ['Arinos (MG)', -15.9170, -46.1060],
+  'UBERLANDIA': ['Uberlândia (MG)', -18.9186, -48.2772],
+  'JOAO PINHEIRO': ['João Pinheiro (MG)', -17.7400, -46.1720],
+  'FORTALEZA': ['Fortaleza (CE)', -3.7319, -38.5267],
+  'JUAZEIRO DO NORTE': ['Juazeiro do Norte (CE)', -7.2130, -39.3150],
+  'CORRENTE': ['Corrente (PI)', -10.4430, -45.1620],
+  'TUCUMA': ['Tucumã (PA)', -6.7480, -51.1620],
+  'CONFRESA': ['Confresa (MT)', -10.6440, -51.5700],
+  'CAMPO GRANDE': ['Campo Grande (MS)', -20.4697, -54.6201],
+  'CAMPINAS': ['Campinas (SP)', -22.9099, -47.0626],
+  'FLORIANOPOLIS': ['Florianópolis (SC)', -27.5954, -48.5480]
+};
+
+const GEO_CAPITAIS = {
+  AC: [-9.9750, -67.8240], AL: [-9.6660, -35.7350], AP: [0.0349, -51.0694], AM: [-3.1190, -60.0217],
+  BA: [-12.9714, -38.5014], CE: [-3.7319, -38.5267], DF: [-15.7942, -47.8825], ES: [-20.3155, -40.3128],
+  GO: [-16.6864, -49.2643], MA: [-2.5307, -44.3068], MT: [-15.6010, -56.0974], MS: [-20.4697, -54.6201],
+  MG: [-19.9167, -43.9345], PA: [-1.4558, -48.4902], PB: [-7.1195, -34.8450], PR: [-25.4284, -49.2733],
+  PE: [-8.0476, -34.8770], PI: [-5.0892, -42.8016], RJ: [-22.9068, -43.1729], RN: [-5.7945, -35.2110],
+  RS: [-30.0346, -51.2177], RO: [-8.7612, -63.9004], RR: [2.8235, -60.6758], SC: [-27.5954, -48.5480],
+  SP: [-23.5505, -46.6333], SE: [-10.9472, -37.0731], TO: [-10.1840, -48.3336]
+};
+
+/* Converte o texto livre do campo BAIRRO em um lugar canônico do DF/Entorno. */
+function classificaBairro(bruto) {
+  const t = ' ' + normGeo(bruto) + ' ';
+  const tem = (...ws) => ws.some(w => t.includes(' ' + w + ' ') || t.includes(w));
+  const palavra = w => new RegExp('\\b' + w + '\\b').test(t);
+
+  if (tem('MEIRELES')) return 'Setor Meireles (Santa Maria)';
+  if (tem('PONTE ALTA NORTE', 'P ALTA NORTE')) return 'Ponte Alta Norte (Gama)';
+  if (tem('PONTE ALTA', 'POBTE ALTA', 'POLO JK', 'PONTE DE TERRA') || (tem('P ALTA') && palavra('GAMA'))) return 'Ponte Alta (Gama)';
+  if (tem('SANTA MARIA', 'SANTA MARA', 'SENTA MARIA', 'TOTAL VILLE')) {
+    if (tem('NORTE')) return 'Santa Maria Norte';
+    if (tem('SUL')) return 'Santa Maria Sul';
+    return 'Santa Maria';
+  }
+  if (tem('NOVO GAMA', 'PEDREGAL', 'LAGO AZUL')) return 'Novo Gama (GO)';
+  if (tem('VALPARAISO', 'CEU AZUL', 'PARQUE ESPLANADA')) return 'Valparaíso de Goiás (GO)';
+  if (tem('OCIDENTAL', 'JARDIM ABC')) return 'Cidade Ocidental (GO)';
+  if (tem('LUZIANIA', 'JARDIM INGA')) return 'Luziânia (GO)';
+  if (tem('AGUAS LINDAS')) return 'Águas Lindas de Goiás (GO)';
+  if (palavra('GAMA') || /\bSETOR (LESTE|OESTE|SUL|NORTE|CENTRAL)\b/.test(t) || tem('SETOR DE INDUSTRIA', 'SETOR INDUSTRIAL')) {
+    if (tem('LESTE')) return 'Setor Leste (Gama)';
+    if (tem('OESTE')) return 'Setor Oeste (Gama)';
+    if (tem('INDUSTRIA')) return 'Setor de Indústria (Gama)';
+    if (tem('CENTRAL')) return 'Setor Central (Gama)';
+    if (tem('NORTE')) return 'Setor Norte (Gama)';
+    if (tem('SUL')) return 'Setor Sul (Gama)';
+    return 'Gama';
+  }
+  if (tem('TAGUATINGA')) {
+    if (tem('NORTE')) return 'Taguatinga Norte';
+    if (tem('SUL')) return 'Taguatinga Sul';
+    return 'Taguatinga';
+  }
+  if (tem('SOL NASCENTE', 'POR DO SOL')) return 'Sol Nascente/Pôr do Sol';
+  if (tem('CEILANDIA') || /\bP (SUL|NORTE)\b/.test(t) || /\bQN[MNOPQR]\b/.test(t)) {
+    if (tem('NORTE')) return 'Ceilândia Norte';
+    if (tem('SUL')) return 'Ceilândia Sul';
+    return 'Ceilândia';
+  }
+  if (tem('SAMAMBAIA')) {
+    if (tem('NORTE')) return 'Samambaia Norte';
+    if (tem('SUL')) return 'Samambaia Sul';
+    return 'Samambaia';
+  }
+  if (tem('AGUAS CLARAS', 'ADE AGUAS')) return 'Águas Claras';
+  if (tem('ARNIQUEIRA')) return 'Arniqueira';
+  if (tem('RECANTO DAS EMAS', 'RECONTO DAS EMAS')) return 'Recanto das Emas';
+  if (tem('RIACHO FUNDO')) return (palavra('II') || palavra('2')) ? 'Riacho Fundo II' : 'Riacho Fundo';
+  if (tem('GUARA')) {
+    if (palavra('II') || palavra('2')) return 'Guará II';
+    if (palavra('I') || palavra('1')) return 'Guará I';
+    return 'Guará';
+  }
+  if (tem('BANDEIRANTE')) return 'Núcleo Bandeirante';
+  if (tem('CANDANGOLANDIA')) return 'Candangolândia';
+  if (tem('PARK WAY', 'PARKWAY')) return 'Park Way';
+  if (tem('LAGO SUL')) return 'Lago Sul';
+  if (tem('LAGO NORTE')) return 'Lago Norte';
+  if (tem('JARDIM BOTANICO', 'MANGUEIRAL')) return 'Jardim Botânico';
+  if (tem('SAO SEBASTIAO')) return 'São Sebastião';
+  if (tem('SOBRADINHO')) return (palavra('II') || palavra('2')) ? 'Sobradinho II' : 'Sobradinho';
+  if (tem('PLANALTINA')) return 'Planaltina';
+  if (tem('PARANOA', 'PARONOA')) return 'Paranoá';
+  if (tem('ITAPOA')) return 'Itapoã';
+  if (tem('VARJAO')) return 'Varjão';
+  if (tem('CRUZEIRO')) return 'Cruzeiro';
+  if (tem('SUDOESTE', 'OCTOGONAL')) return 'Sudoeste/Octogonal';
+  if (tem('VICENTE PIRES')) return 'Vicente Pires';
+  if (tem('ESTRUTURAL', 'SCIA')) return 'SCIA/Estrutural';
+  if (palavra('SIA')) return 'SIA';
+  if (tem('BRAZLANDIA')) return 'Brazlândia';
+  if (tem('FERCAL')) return 'Fercal';
+  if (tem('ASA SUL') || palavra('SQS') || palavra('SHIS') || palavra('SGAS') || palavra('CLS')) return 'Asa Sul';
+  if (tem('ASA NORTE') || palavra('SQN') || palavra('SGAN') || palavra('CLN')) return 'Asa Norte';
+  if (tem('VILA PLANALTO')) return 'Vila Planalto';
+  if (tem('NOROESTE')) return 'Noroeste';
+  if (tem('GRANJA DO TORTO') || palavra('TORTO')) return 'Granja do Torto';
+  if (tem('BRASILIA', 'PLANO PILOTO')) return 'Plano Piloto';
+  return null;
+}
+
+/* Ponto no mapa para um registro: bairro (DF) ou município (demais UFs). */
+function pontoDoRegistro(r) {
+  if (r.uf === 'DF') {
+    const canon = classificaBairro(r.bairro);
+    if (canon && GEO_PONTOS[canon]) return { chave: canon, coords: GEO_PONTOS[canon], aprox: false };
+    return null;
+  }
+  const cid = GEO_CIDADES[normGeo(r.cidade)];
+  if (cid) return { chave: cid[0], coords: [cid[1], cid[2]], aprox: false };
+  const cap = GEO_CAPITAIS[r.uf];
+  if (cap) return { chave: 'Outros municípios — ' + r.uf, coords: cap, aprox: true };
+  return { exterior: true };
+}
+
+const CALOR = ['#FBE4D3', '#F6BC90', '#F08F4E', '#D96524', '#A93E0F'];
+const corCalor = f => CALOR[Math.max(0, Math.min(CALOR.length - 1, Math.floor(f * CALOR.length)))];
+const VISTA_DF = { centro: [-15.95, -48.00], zoom: 10 };
+
+function vistaMapa(qual) {
+  if (!estado.mapa) return;
+  $('#btnMapaDF').classList.toggle('active', qual === 'df');
+  $('#btnMapaBR').classList.toggle('active', qual === 'br');
+  if (qual === 'br' && estado.mapaBounds) estado.mapa.fitBounds(estado.mapaBounds.pad(0.18));
+  else estado.mapa.setView(VISTA_DF.centro, VISTA_DF.zoom);
+}
+
+function renderMapa(regs) {
+  const nota = $('#mapaNota');
+  if (typeof L === 'undefined') {
+    nota.innerHTML = '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>A biblioteca de mapas (Leaflet) não pôde ser carregada — verifique a conexão com a internet.';
+    return;
+  }
+  if (!estado.mapa) {
+    estado.mapa = L.map('mapaAlunos', { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(estado.mapa);
+    estado.mapaCamada = L.layerGroup().addTo(estado.mapa);
+    estado.mapa.setView(VISTA_DF.centro, VISTA_DF.zoom);
+    $('#btnMapaDF').addEventListener('click', () => vistaMapa('df'));
+    $('#btnMapaBR').addEventListener('click', () => vistaMapa('br'));
+    setTimeout(() => estado.mapa.invalidateSize(), 250);
+  }
+
+  const ag = new Map();
+  let semLocal = 0, exterior = 0;
+  for (const r of regs) {
+    const p = pontoDoRegistro(r);
+    if (!p) { semLocal++; continue; }
+    if (p.exterior) { exterior++; continue; }
+    const atual = ag.get(p.chave) || { coords: p.coords, n: 0, aprox: p.aprox };
+    atual.n++;
+    ag.set(p.chave, atual);
+  }
+
+  estado.mapaCamada.clearLayers();
+  const itens = [...ag.entries()].sort((a, b) => b[1].n - a[1].n); // maiores primeiro: círculos pequenos ficam por cima
+  const nmax = itens.length ? itens[0][1].n : 0;
+  const pontos = [];
+  for (const [chave, d] of itens) {
+    const f = nmax > 0 ? Math.log(1 + d.n) / Math.log(1 + nmax) : 0;
+    pontos.push(d.coords);
+    L.circleMarker(d.coords, {
+      radius: 6 + 22 * Math.sqrt(nmax ? d.n / nmax : 0),
+      color: '#ffffff', weight: 1.5,
+      fillColor: corCalor(f), fillOpacity: 0.78
+    }).bindTooltip(
+      '<b>' + chave + '</b><br>' + nf0.format(d.n) + ' aluno(s) · ' + fmtPct(d.n, regs.length) + ' do filtro' +
+      (d.aprox ? '<br><i>posição aproximada (capital da UF)</i>' : ''),
+      { className: 'map-tip', direction: 'top', sticky: true }
+    ).addTo(estado.mapaCamada);
+  }
+  estado.mapaBounds = pontos.length ? L.latLngBounds(pontos) : null;
+
+  const georef = regs.length - semLocal - exterior;
+  const partes = ['<i class="fas fa-circle-info" aria-hidden="true"></i>' +
+    nf0.format(georef) + ' de ' + nf0.format(regs.length) +
+    ' aluno(s) do filtro posicionados pelo centro aproximado do bairro (DF) ou do município (demais UFs).'];
+  if (semLocal) partes.push(nf0.format(semLocal) + ' registro(s) com bairro não identificável ficam fora do mapa.');
+  if (exterior) partes.push(nf0.format(exterior) + ' aluno(s) residem no exterior e não aparecem no mapa.');
+  nota.innerHTML = partes.join(' ');
+}
 
 /* ── Blocos de renderização ───────────────────────────────────────── */
 function renderHero() {
@@ -355,6 +647,7 @@ function renderGraficosCursos(regs, stats) {
     },
     options: {
       indexAxis: 'y', maintainAspectRatio: false,
+      layout: { padding: { top: 30 } },
       plugins: {
         legend: { display: false },
         linhaMedia: { valor: mediaGeral },
@@ -788,6 +1081,7 @@ function renderTudo() {
   renderGraficosPerfil(regs);
   renderRadar(regs, stats);
   renderHeatmap(regs, stats);
+  renderMapa(regs);
   renderTabelaStats(regs, stats);
   renderTabelaAlunos(regs);
 }
@@ -832,5 +1126,5 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined' && typeof C
 
 /* Exporta funções puras para testes em Node (não afeta o navegador). */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { prepararRegistros, descreve, quantil, rotuloCurso, paraData, idadeEm, semAcento, titulo, GRUPOS_SITUACAO };
+  module.exports = { prepararRegistros, descreve, quantil, rotuloCurso, paraData, idadeEm, semAcento, titulo, GRUPOS_SITUACAO, normGeo, classificaBairro, pontoDoRegistro };
 }

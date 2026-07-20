@@ -31,6 +31,7 @@
   <!-- Ícones Font Awesome (mesma biblioteca do painel de origem) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <!-- Folha de estilos compilada de scss/style.scss -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -83,6 +84,7 @@
   <ul>
     <li><a href="#sec-visao" class="active"><i class="fas fa-chart-pie" aria-hidden="true"></i> Visão geral</a></li>
     <li><a href="#sec-perfil"><i class="fas fa-users" aria-hidden="true"></i> Perfil dos alunos</a></li>
+    <li><a href="#sec-geo"><i class="fas fa-map-location-dot" aria-hidden="true"></i> Mapa</a></li>
     <li><a href="#sec-estatisticas"><i class="fas fa-calculator" aria-hidden="true"></i> Estatísticas descritivas</a></li>
     <li><a href="#sec-alunos"><i class="fas fa-table-list" aria-hidden="true"></i> Lista de alunos</a></li>
   </ul>
@@ -99,7 +101,7 @@
         Panorama interativo dos alunos do UNICEPLAC: distribuição por curso,
         estatísticas descritivas de idade, situação acadêmica, perfil
         demográfico e origem geográfica. Os dados são lidos diretamente da
-        planilha <strong>dados_alunos_2026_1.xlsx</strong> publicada junto com esta página.
+        planilha <strong>dados.xlsx</strong> publicada junto com esta página.
       </p>
       <div class="hero-stats" id="heroStats" aria-live="polite">
         <div><b id="hsAlunos">—</b><span>alunos registrados</span></div>
@@ -254,6 +256,36 @@
     <div class="card-bd heatmap-wrap" id="heatmapWrap"></div>
   </div>
 
+  <!-- ── DISTRIBUIÇÃO GEOESPACIAL ─────────────────────────────── -->
+  <h2 class="section-title" id="sec-geo">
+    <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
+    Onde os alunos moram
+  </h2>
+
+  <div class="un-card">
+    <div class="card-hd">
+      <h3 class="card-title">Mapa de calor por bairro</h3>
+      <div class="card-tools">
+        <div class="map-views" role="group" aria-label="Enquadramento do mapa">
+          <button class="btn-mini active" type="button" id="btnMapaDF"><i class="fas fa-location-crosshairs" aria-hidden="true"></i> DF e Entorno</button>
+          <button class="btn-mini" type="button" id="btnMapaBR"><i class="fas fa-earth-americas" aria-hidden="true"></i> Brasil</button>
+        </div>
+      </div>
+      <div class="card-sub">
+        Cada círculo agrega os alunos do filtro atual pelo <b>bairro informado na matrícula</b> (dentro do DF)
+        ou pelo <b>município</b> (nos demais estados). Quanto mais quente a cor e maior o círculo, mais
+        estudantes moram ali; tons claros indicam poucos alunos. Passe o cursor ou toque nos círculos para ver as contagens.
+      </div>
+    </div>
+    <div class="card-bd">
+      <div id="mapaAlunos" class="mapa" role="application" aria-label="Mapa com a distribuição de alunos por bairro e município"></div>
+      <div class="map-legend">
+        <span>menos alunos</span><span class="map-grad" aria-hidden="true"></span><span>mais alunos</span>
+      </div>
+      <div class="legend-note" id="mapaNota"></div>
+    </div>
+  </div>
+
   <!-- ── ESTATÍSTICAS DESCRITIVAS ─────────────────────────────── -->
   <h2 class="section-title" id="sec-estatisticas">
     <svg class="petal-dot" aria-hidden="true"><use href="#un-flower"/></svg>
@@ -316,7 +348,7 @@
   <section class="error-panel" id="errorPanel" role="alert">
     <h2><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Não foi possível carregar a planilha</h2>
     <p>
-      O painel lê o arquivo <code>dados_alunos_2026_1.xlsx</code> por <code>fetch()</code>, o que exige um
+      O painel lê o arquivo <code>dados.xlsx</code> por <code>fetch()</code>, o que exige um
       servidor HTTP — abrir o <code>index.html</code> com clique duplo (protocolo <code>file://</code>) bloqueia a leitura.
     </p>
     <p>
@@ -333,11 +365,7 @@
 <footer class="un-footer" role="contentinfo">
   <div class="footer-inner">
     <div class="footer-brand">
-      <svg aria-hidden="true"><use href="#un-flower"/></svg>
-      <div>
-        <strong>UNICEPLAC</strong>
-        <span>Centro Universitário</span>
-      </div>
+      <img class="footer-logo" src="assets/logo-vertical-branca.png" alt="UNICEPLAC — Centro Universitário">
     </div>
     <div class="footer-meta">
       Painel do corpo discente · semestre 2026/1.<br>
@@ -364,6 +392,7 @@
 <!-- Bibliotecas (mesmas versões/CDNs do painel de origem + SheetJS) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
